@@ -20,11 +20,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	ethereum "github.com/roodeag/arbitrum"
 	"math/big"
 	"strings"
 	"sync"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"

@@ -32,7 +32,7 @@ import (
 	"github.com/roodeag/arbitrum/params"
 	"github.com/roodeag/arbitrum/rlp"
 	"github.com/roodeag/arbitrum/tests"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 type result struct {

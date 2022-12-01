@@ -33,7 +33,7 @@ import (
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/log"
 	"github.com/roodeag/arbitrum/rlp"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 //go:generate go run github.com/fjl/gencodec -type header -field-override headerMarshaling -out gen_header.go

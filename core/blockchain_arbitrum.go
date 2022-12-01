@@ -18,9 +18,23 @@
 package core
 
 import (
+	"time"
+
+	"github.com/roodeag/arbitrum/core/state"
 	"github.com/roodeag/arbitrum/core/types"
+	"github.com/roodeag/arbitrum/log"
 	"github.com/roodeag/arbitrum/rpc"
 )
+
+// WriteBlockAndSetHeadWithTime also counts processTime, which will cause intermittent TrieDirty cache writes
+func (bc *BlockChain) WriteBlockAndSetHeadWithTime(block *types.Block, receipts []*types.Receipt, logs []*types.Log, state *state.StateDB, emitHeadEvent bool, processTime time.Duration) (status WriteStatus, err error) {
+	if !bc.chainmu.TryLock() {
+		return NonStatTy, errChainStopped
+	}
+	defer bc.chainmu.Unlock()
+	bc.gcproc += processTime
+	return bc.writeBlockAndSetHead(block, receipts, logs, state, emitHeadEvent)
+}
 
 func (bc *BlockChain) ReorgToOldBlock(newHead *types.Block) error {
 	bc.wg.Add(1)
@@ -53,4 +67,13 @@ func (bc *BlockChain) ClipToPostNitroGenesis(blockNum rpc.BlockNumber) (rpc.Bloc
 		blockNum = nitroGenesis
 	}
 	return blockNum, currentBlock
+}
+
+func (bc *BlockChain) RecoverState(block *types.Block) error {
+	if bc.HasState(block.Root()) {
+		return nil
+	}
+	log.Warn("recovering block state", "num", block.Number(), "hash", block.Hash(), "root", block.Root())
+	_, err := bc.recoverAncestors(block)
+	return err
 }

@@ -6,8 +6,10 @@ import (
 	"github.com/roodeag/arbitrum/core"
 	"github.com/roodeag/arbitrum/core/bloombits"
 	"github.com/roodeag/arbitrum/core/types"
+	"github.com/roodeag/arbitrum/eth/filters"
 	"github.com/roodeag/arbitrum/ethdb"
 	"github.com/roodeag/arbitrum/event"
+	"github.com/roodeag/arbitrum/internal/shutdowncheck"
 	"github.com/roodeag/arbitrum/node"
 )
 
@@ -24,12 +26,14 @@ type Backend struct {
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
 
+	shutdownTracker *shutdowncheck.ShutdownTracker
+
 	chanTxs      chan *types.Transaction
 	chanClose    chan struct{} //close coroutine
 	chanNewBlock chan struct{} //create new L2 block unless empty
 }
 
-func NewBackend(stack *node.Node, config *Config, chainDb ethdb.Database, publisher ArbInterface, sync SyncProgressBackend) (*Backend, error) {
+func NewBackend(stack *node.Node, config *Config, chainDb ethdb.Database, publisher ArbInterface, sync SyncProgressBackend, filterConfig filters.Config) (*Backend, *filters.FilterSystem, error) {
 	backend := &Backend{
 		arb:     publisher,
 		stack:   stack,
@@ -39,17 +43,20 @@ func NewBackend(stack *node.Node, config *Config, chainDb ethdb.Database, publis
 		bloomRequests: make(chan chan *bloombits.Retrieval),
 		bloomIndexer:  core.NewBloomIndexer(chainDb, config.BloomBitsBlocks, config.BloomConfirms),
 
+		shutdownTracker: shutdowncheck.NewShutdownTracker(chainDb),
+
 		chanTxs:      make(chan *types.Transaction, 100),
 		chanClose:    make(chan struct{}),
 		chanNewBlock: make(chan struct{}, 1),
 	}
 
 	backend.bloomIndexer.Start(backend.arb.BlockChain())
-	err := createRegisterAPIBackend(backend, sync, config.ClassicRedirect)
+	filterSystem, err := createRegisterAPIBackend(backend, sync, filterConfig, config.ClassicRedirect, config.ClassicRedirectTimeout)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return backend, nil
+	backend.shutdownTracker.MarkStartup()
+	return backend, filterSystem, nil
 }
 
 func (b *Backend) APIBackend() *APIBackend {
@@ -76,9 +83,10 @@ func (b *Backend) ArbInterface() ArbInterface {
 	return b.arb
 }
 
-//TODO: this is used when registering backend as lifecycle in stack
+// TODO: this is used when registering backend as lifecycle in stack
 func (b *Backend) Start() error {
 	b.startBloomHandlers(b.config.BloomBitsBlocks)
+	b.shutdownTracker.Start()
 
 	return nil
 }
@@ -86,6 +94,8 @@ func (b *Backend) Start() error {
 func (b *Backend) Stop() error {
 	b.scope.Close()
 	b.bloomIndexer.Close()
+	b.shutdownTracker.Stop()
+	b.chainDb.Close()
 	close(b.chanClose)
 	return nil
 }

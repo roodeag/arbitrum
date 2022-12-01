@@ -19,9 +19,9 @@ package accounts
 
 import (
 	"fmt"
-	ethereum "github.com/roodeag/arbitrum"
 	"math/big"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/event"

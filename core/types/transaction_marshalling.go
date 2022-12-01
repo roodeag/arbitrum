@@ -134,6 +134,7 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 		enc.S = (*hexutil.Big)(tx.S)
 		enc.EffectiveGasPrice = (*hexutil.Uint64)(&tx.EffectiveGasPrice)
 		enc.L1BlockNumber = (*hexutil.Uint64)(&tx.L1BlockNumber)
+		enc.From = tx.Sender
 	case *ArbitrumInternalTx:
 		enc.ChainID = (*hexutil.Big)(tx.ChainId)
 		enc.Data = (*hexutil.Bytes)(&tx.Data)
@@ -414,6 +415,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 			HashOverride:      dec.Hash,
 			EffectiveGasPrice: uint64(*dec.EffectiveGasPrice),
 			L1BlockNumber:     uint64(*dec.L1BlockNumber),
+			Sender:            dec.From,
 		}
 
 	case ArbitrumInternalTxType:
@@ -588,9 +590,6 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 		}
 		if dec.Gas == nil {
 			return errors.New("missing required field 'gas' in txdata")
-		}
-		if dec.RetryTo == nil {
-			return errors.New("missing required field 'retryTo' in txdata")
 		}
 		if dec.Beneficiary == nil {
 			return errors.New("missing required field 'beneficiary' in transaction")

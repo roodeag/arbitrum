@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/eth"
 	"github.com/roodeag/arbitrum/eth/tracers"
 	"github.com/roodeag/arbitrum/log"
@@ -37,7 +38,18 @@ type APIBackend struct {
 	sync           SyncProgressBackend
 }
 
-func createFallbackClient(fallbackClientUrl string) (types.FallbackClient, error) {
+type timeoutFallbackClient struct {
+	impl    types.FallbackClient
+	timeout time.Duration
+}
+
+func (c *timeoutFallbackClient) CallContext(ctxIn context.Context, result interface{}, method string, args ...interface{}) error {
+	ctx, cancel := context.WithTimeout(ctxIn, c.timeout)
+	defer cancel()
+	return c.impl.CallContext(ctx, result, method, args...)
+}
+
+func CreateFallbackClient(fallbackClientUrl string, fallbackClientTimeout time.Duration) (types.FallbackClient, error) {
 	if fallbackClientUrl == "" {
 		return nil, nil
 	}
@@ -52,9 +64,17 @@ func createFallbackClient(fallbackClientUrl string) (types.FallbackClient, error
 		types.SetFallbackError(strings.Join(fields, ":"), int(errNumber))
 		return nil, nil
 	}
-	fallbackClient, err := rpc.Dial(fallbackClientUrl)
+	var fallbackClient types.FallbackClient
+	var err error
+	fallbackClient, err = rpc.Dial(fallbackClientUrl)
 	if fallbackClient == nil || err != nil {
 		return nil, fmt.Errorf("failed creating fallback connection: %w", err)
+	}
+	if fallbackClientTimeout != 0 {
+		fallbackClient = &timeoutFallbackClient{
+			impl:    fallbackClient,
+			timeout: fallbackClientTimeout,
+		}
 	}
 	return fallbackClient, nil
 }
@@ -63,27 +83,28 @@ type SyncProgressBackend interface {
 	SyncProgressMap() map[string]interface{}
 }
 
-func createRegisterAPIBackend(backend *Backend, sync SyncProgressBackend, fallbackClientUrl string) error {
-	fallbackClient, err := createFallbackClient(fallbackClientUrl)
+func createRegisterAPIBackend(backend *Backend, sync SyncProgressBackend, filterConfig filters.Config, fallbackClientUrl string, fallbackClientTimeout time.Duration) (*filters.FilterSystem, error) {
+	fallbackClient, err := CreateFallbackClient(fallbackClientUrl, fallbackClientTimeout)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	backend.apiBackend = &APIBackend{
 		b:              backend,
 		fallbackClient: fallbackClient,
 		sync:           sync,
 	}
-	backend.stack.RegisterAPIs(backend.apiBackend.GetAPIs())
-	return nil
+	filterSystem := filters.NewFilterSystem(backend.apiBackend, filterConfig)
+	backend.stack.RegisterAPIs(backend.apiBackend.GetAPIs(filterSystem))
+	return filterSystem, nil
 }
 
-func (a *APIBackend) GetAPIs() []rpc.API {
+func (a *APIBackend) GetAPIs(filterSystem *filters.FilterSystem) []rpc.API {
 	apis := ethapi.GetAPIs(a)
 
 	apis = append(apis, rpc.API{
 		Namespace: "eth",
 		Version:   "1.0",
-		Service:   filters.NewPublicFilterAPI(a, false, 5*time.Minute),
+		Service:   filters.NewFilterAPI(filterSystem, false),
 		Public:    true,
 	})
 
@@ -471,16 +492,8 @@ func (a *APIBackend) BloomStatus() (uint64, uint64) {
 	return a.b.config.BloomBitsBlocks, sections
 }
 
-func (a *APIBackend) GetLogs(ctx context.Context, blockHash common.Hash) ([][]*types.Log, error) {
-	receipts := a.blockChain().GetReceiptsByHash(blockHash)
-	if receipts == nil {
-		return nil, nil
-	}
-	logs := make([][]*types.Log, len(receipts))
-	for i, receipt := range receipts {
-		logs[i] = receipt.Logs
-	}
-	return logs, nil
+func (a *APIBackend) GetLogs(ctx context.Context, hash common.Hash, number uint64) ([][]*types.Log, error) {
+	return rawdb.ReadLogs(a.ChainDb(), hash, number, a.ChainConfig()), nil
 }
 
 func (a *APIBackend) ServiceFilter(ctx context.Context, session *bloombits.MatcherSession) {

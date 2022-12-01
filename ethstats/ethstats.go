@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/consensus"
