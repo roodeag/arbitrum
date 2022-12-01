@@ -19,10 +19,10 @@ package gethclient
 import (
 	"bytes"
 	"context"
-	ethereum "github.com/roodeag/arbitrum"
 	"math/big"
 	"testing"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/consensus/ethash"
 	"github.com/roodeag/arbitrum/core"
@@ -31,6 +31,7 @@ import (
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/eth"
 	"github.com/roodeag/arbitrum/eth/ethconfig"
+	"github.com/roodeag/arbitrum/eth/filters"
 	"github.com/roodeag/arbitrum/ethclient"
 	"github.com/roodeag/arbitrum/node"
 	"github.com/roodeag/arbitrum/params"
@@ -60,6 +61,12 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	if err != nil {
 		t.Fatalf("can't create new ethereum service: %v", err)
 	}
+	filterSystem := filters.NewFilterSystem(ethservice.APIBackend, filters.Config{})
+	n.RegisterAPIs([]rpc.API{{
+		Namespace: "eth",
+		Service:   filters.NewFilterAPI(filterSystem, false),
+	}})
+
 	// Import the test chain.
 	if err := n.Start(); err != nil {
 		t.Fatalf("can't start test node: %v", err)
@@ -83,7 +90,7 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 		g.OffsetTime(5)
 		g.SetExtra([]byte("test"))
 	}
-	gblock := genesis.ToBlock(db)
+	gblock := genesis.MustCommit(db)
 	engine := ethash.NewFaker()
 	blocks, _ := core.GenerateChain(config, gblock, engine, db, 1, generate)
 	blocks = append([]*types.Block{gblock}, blocks...)
@@ -222,7 +229,6 @@ func testGetProof(t *testing.T, client *rpc.Client) {
 	if proof.Key != testSlot.String() {
 		t.Fatalf("invalid storage proof key, want: %v, got: %v", testSlot.String(), proof.Key)
 	}
-
 }
 
 func testGCStats(t *testing.T, client *rpc.Client) {

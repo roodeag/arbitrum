@@ -21,6 +21,7 @@ package geth
 import (
 	"errors"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 )
 

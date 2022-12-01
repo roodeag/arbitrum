@@ -28,7 +28,7 @@ import (
 
 	"github.com/jedisct1/go-minisign"
 	"github.com/roodeag/arbitrum/log"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 var gethPubKeys []string = []string{

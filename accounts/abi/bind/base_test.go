@@ -24,6 +24,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/accounts/abi/bind"
 	"github.com/roodeag/arbitrum/common"
@@ -114,7 +115,6 @@ func (mc *mockPendingCaller) PendingCallContract(ctx context.Context, call ether
 }
 
 func TestPassingBlockNumber(t *testing.T) {
-
 	mc := &mockPendingCaller{
 		mockCaller: &mockCaller{
 			codeAtBytes: []byte{1, 2, 3},

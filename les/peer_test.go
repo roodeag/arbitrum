@@ -28,7 +28,6 @@ import (
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core"
 	"github.com/roodeag/arbitrum/core/forkid"
-	"github.com/roodeag/arbitrum/core/rawdb"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/p2p"
 	"github.com/roodeag/arbitrum/p2p/enode"
@@ -100,7 +99,7 @@ type fakeChain struct{}
 
 func (f *fakeChain) Config() *params.ChainConfig { return params.MainnetChainConfig }
 func (f *fakeChain) Genesis() *types.Block {
-	return core.DefaultGenesisBlock().ToBlock(rawdb.NewMemoryDatabase())
+	return core.DefaultGenesisBlock().ToBlock()
 }
 func (f *fakeChain) CurrentHeader() *types.Header { return &types.Header{Number: big.NewInt(10000000)} }
 

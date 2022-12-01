@@ -19,9 +19,9 @@ package bind
 import (
 	"context"
 	"errors"
-	ethereum "github.com/roodeag/arbitrum"
 	"math/big"
 
+	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 )
