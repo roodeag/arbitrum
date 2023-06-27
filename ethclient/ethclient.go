@@ -22,12 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
-
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/hexutil"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/rpc"
+	"math/big"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
