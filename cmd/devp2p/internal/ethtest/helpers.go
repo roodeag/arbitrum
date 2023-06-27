@@ -18,11 +18,6 @@ package ethtest
 
 import (
 	"fmt"
-	"net"
-	"reflect"
-	"strings"
-	"time"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
@@ -31,6 +26,10 @@ import (
 	"github.com/roodeag/arbitrum/internal/utesting"
 	"github.com/roodeag/arbitrum/p2p"
 	"github.com/roodeag/arbitrum/p2p/rlpx"
+	"net"
+	"reflect"
+	"strings"
+	"time"
 )
 
 var (

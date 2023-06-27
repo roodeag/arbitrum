@@ -19,10 +19,10 @@ package bind
 import (
 	"context"
 	"errors"
-	"math/big"
-
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
+	"math/big"
 )
 
 var (

@@ -22,15 +22,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
-	"net/http"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/gorilla/websocket"
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/consensus"
@@ -44,6 +37,13 @@ import (
 	"github.com/roodeag/arbitrum/node"
 	"github.com/roodeag/arbitrum/p2p"
 	"github.com/roodeag/arbitrum/rpc"
+	"math/big"
+	"net/http"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 const (

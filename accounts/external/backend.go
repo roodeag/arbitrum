@@ -18,6 +18,7 @@ package external
 
 import (
 	"fmt"
+	ethereum "github.com/roodeag/arbitrum"
 	"math/big"
 	"sync"
 

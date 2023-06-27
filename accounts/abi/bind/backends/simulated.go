@@ -20,10 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
-	"sync"
-	"time"
-
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/accounts/abi/bind"
 	"github.com/roodeag/arbitrum/common"
@@ -42,6 +39,9 @@ import (
 	"github.com/roodeag/arbitrum/log"
 	"github.com/roodeag/arbitrum/params"
 	"github.com/roodeag/arbitrum/rpc"
+	"math/big"
+	"sync"
+	"time"
 )
 
 // This nil assignment ensures at compile time that SimulatedBackend implements bind.ContractBackend.

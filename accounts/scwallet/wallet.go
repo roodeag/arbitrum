@@ -26,20 +26,20 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"math/big"
-	"regexp"
-	"sort"
-	"strings"
-	"sync"
-	"time"
-
-	"github.com/roodeag/arbitrum"
+	pcsc "github.com/gballet/go-libpcsclite"
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/log"
 	"github.com/status-im/keycard-go/derivationpath"
+	"math/big"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+	"time"
 )
 
 // ErrPairingPasswordNeeded is returned if opening the smart card requires pairing with a pairing

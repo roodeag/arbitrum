@@ -20,13 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"math/big"
-	"math/rand"
-	"reflect"
-	"strings"
-	"testing"
-	"time"
-
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/accounts/abi/bind"
 	"github.com/roodeag/arbitrum/common"
@@ -34,6 +28,12 @@ import (
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/params"
+	"math/big"
+	"math/rand"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestSimulatedBackend(t *testing.T) {

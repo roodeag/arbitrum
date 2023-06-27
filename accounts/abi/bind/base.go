@@ -20,15 +20,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
-	"strings"
-	"sync"
-
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/event"
+	"math/big"
+	"strings"
+	"sync"
 )
 
 const basefeeWiggleMultiplier = 2
