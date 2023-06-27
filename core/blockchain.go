@@ -20,16 +20,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"io"
-	"math"
-	"math/big"
-	"runtime"
-	"sort"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"time"
-
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/lru"
 	"github.com/roodeag/arbitrum/common/mclock"
@@ -49,6 +39,15 @@ import (
 	"github.com/roodeag/arbitrum/params"
 	"github.com/roodeag/arbitrum/rlp"
 	"github.com/roodeag/arbitrum/trie"
+	"io"
+	"math"
+	"math/big"
+	"runtime"
+	"sort"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 var (
