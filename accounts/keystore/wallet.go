@@ -19,7 +19,6 @@ package keystore
 import (
 	"math/big"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"

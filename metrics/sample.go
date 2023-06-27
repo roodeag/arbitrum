@@ -45,6 +45,7 @@ type ExpDecaySample struct {
 	reservoirSize int
 	t0, t1        time.Time
 	values        *expDecaySampleHeap
+	rand          *rand.Rand
 }
 
 // NewExpDecaySample constructs a new exponentially-decaying sample with the
@@ -60,6 +61,12 @@ func NewExpDecaySample(reservoirSize int, alpha float64) Sample {
 		values:        newExpDecaySampleHeap(reservoirSize),
 	}
 	s.t1 = s.t0.Add(rescaleThreshold)
+	return s
+}
+
+// SetRand sets the random source (useful in tests)
+func (s *ExpDecaySample) SetRand(prng *rand.Rand) Sample {
+	s.rand = prng
 	return s
 }
 
@@ -172,8 +179,14 @@ func (s *ExpDecaySample) update(t time.Time, v int64) {
 	if s.values.Size() == s.reservoirSize {
 		s.values.Pop()
 	}
+	var f64 float64
+	if s.rand != nil {
+		f64 = s.rand.Float64()
+	} else {
+		f64 = rand.Float64()
+	}
 	s.values.Push(expDecaySample{
-		k: math.Exp(t.Sub(s.t0).Seconds()*s.alpha) / rand.Float64(),
+		k: math.Exp(t.Sub(s.t0).Seconds()*s.alpha) / f64,
 		v: v,
 	})
 	if t.After(s.t1) {
@@ -406,6 +419,7 @@ type UniformSample struct {
 	mutex         sync.Mutex
 	reservoirSize int
 	values        []int64
+	rand          *rand.Rand
 }
 
 // NewUniformSample constructs a new uniform sample with the given reservoir
@@ -418,6 +432,12 @@ func NewUniformSample(reservoirSize int) Sample {
 		reservoirSize: reservoirSize,
 		values:        make([]int64, 0, reservoirSize),
 	}
+}
+
+// SetRand sets the random source (useful in tests)
+func (s *UniformSample) SetRand(prng *rand.Rand) Sample {
+	s.rand = prng
+	return s
 }
 
 // Clear clears all samples.
@@ -515,7 +535,12 @@ func (s *UniformSample) Update(v int64) {
 	if len(s.values) < s.reservoirSize {
 		s.values = append(s.values, v)
 	} else {
-		r := rand.Int63n(s.count)
+		var r int64
+		if s.rand != nil {
+			r = s.rand.Int63n(s.count)
+		} else {
+			r = rand.Int63n(s.count)
+		}
 		if r < int64(len(s.values)) {
 			s.values[int(r)] = v
 		}
@@ -673,6 +698,7 @@ func (s *SlidingTimeWindowArraySample) Count() int64 {
 func (s *SlidingTimeWindowArraySample) Max() int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleMax(s.measurements.Values())
 }
 
@@ -680,6 +706,7 @@ func (s *SlidingTimeWindowArraySample) Max() int64 {
 func (s *SlidingTimeWindowArraySample) Mean() float64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleMean(s.measurements.Values())
 }
 
@@ -688,6 +715,7 @@ func (s *SlidingTimeWindowArraySample) Mean() float64 {
 func (s *SlidingTimeWindowArraySample) Min() int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleMin(s.measurements.Values())
 }
 
@@ -695,6 +723,7 @@ func (s *SlidingTimeWindowArraySample) Min() int64 {
 func (s *SlidingTimeWindowArraySample) Percentile(p float64) float64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SamplePercentile(s.measurements.Values(), p)
 }
 
@@ -703,6 +732,7 @@ func (s *SlidingTimeWindowArraySample) Percentile(p float64) float64 {
 func (s *SlidingTimeWindowArraySample) Percentiles(ps []float64) []float64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SamplePercentiles(s.measurements.Values(), ps)
 }
 
@@ -759,6 +789,7 @@ func (s *SlidingTimeWindowArraySample) Snapshot() Sample {
 func (s *SlidingTimeWindowArraySample) StdDev() float64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleStdDev(s.measurements.Values())
 }
 
@@ -766,6 +797,7 @@ func (s *SlidingTimeWindowArraySample) StdDev() float64 {
 func (s *SlidingTimeWindowArraySample) Sum() int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleSum(s.measurements.Values())
 }
 
@@ -790,6 +822,7 @@ func (s *SlidingTimeWindowArraySample) Update(v int64) {
 func (s *SlidingTimeWindowArraySample) Values() []int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	origValues := s.measurements.Values()
 	values := make([]int64, len(origValues))
 	copy(values, origValues)
@@ -800,6 +833,7 @@ func (s *SlidingTimeWindowArraySample) Values() []int64 {
 func (s *SlidingTimeWindowArraySample) Variance() float64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.trim()
 	return SampleVariance(s.measurements.Values())
 }
 

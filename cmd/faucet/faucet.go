@@ -50,6 +50,7 @@ import (
 	"github.com/roodeag/arbitrum/eth/ethconfig"
 	"github.com/roodeag/arbitrum/ethclient"
 	"github.com/roodeag/arbitrum/ethstats"
+	"github.com/roodeag/arbitrum/internal/version"
 	"github.com/roodeag/arbitrum/les"
 	"github.com/roodeag/arbitrum/log"
 	"github.com/roodeag/arbitrum/node"
@@ -91,11 +92,6 @@ var (
 
 var (
 	ether = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-)
-
-var (
-	gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
-	gitDate   = "" // Git commit date YYYYMMDD of the release (set via linker flags)
 )
 
 //go:embed faucet.html
@@ -226,9 +222,10 @@ type wsConn struct {
 
 func newFaucet(genesis *core.Genesis, port int, enodes []*enode.Node, network uint64, stats string, ks *keystore.KeyStore, index []byte) (*faucet, error) {
 	// Assemble the raw devp2p protocol stack
+	git, _ := version.VCS()
 	stack, err := node.New(&node.Config{
 		Name:    "geth",
-		Version: params.VersionWithCommit(gitCommit, gitDate),
+		Version: params.VersionWithCommit(git.Commit, git.Date),
 		DataDir: filepath.Join(os.Getenv("HOME"), ".faucet"),
 		P2P: p2p.Config{
 			NAT:              nat.Any(),
@@ -750,7 +747,7 @@ func authTwitter(url string, tokenV1, tokenV2 string) (string, string, string, c
 func authTwitterWithTokenV1(tweetID string, token string) (string, string, string, common.Address, error) {
 	// Query the tweet details from Twitter
 	url := fmt.Sprintf("https://api.twitter.com/1.1/statuses/show.json?id=%s", tweetID)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", "", "", common.Address{}, err
 	}
@@ -787,7 +784,7 @@ func authTwitterWithTokenV1(tweetID string, token string) (string, string, strin
 func authTwitterWithTokenV2(tweetID string, token string) (string, string, string, common.Address, error) {
 	// Query the tweet details from Twitter
 	url := fmt.Sprintf("https://api.twitter.com/2/tweets/%s?expansions=author_id&user.fields=profile_image_url", tweetID)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", "", "", common.Address{}, err
 	}

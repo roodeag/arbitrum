@@ -25,7 +25,7 @@ import (
 
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/mclock"
-	"github.com/roodeag/arbitrum/core"
+	"github.com/roodeag/arbitrum/core/txpool"
 	"github.com/roodeag/arbitrum/core/types"
 )
 
@@ -869,9 +869,9 @@ func TestTransactionFetcherUnderpricedDedup(t *testing.T) {
 					errs := make([]error, len(txs))
 					for i := 0; i < len(errs); i++ {
 						if i%2 == 0 {
-							errs[i] = core.ErrUnderpriced
+							errs[i] = txpool.ErrUnderpriced
 						} else {
-							errs[i] = core.ErrReplaceUnderpriced
+							errs[i] = txpool.ErrReplaceUnderpriced
 						}
 					}
 					return errs
@@ -941,7 +941,7 @@ func TestTransactionFetcherUnderpricedDoSProtection(t *testing.T) {
 				func(txs []*types.Transaction) []error {
 					errs := make([]error, len(txs))
 					for i := 0; i < len(errs); i++ {
-						errs[i] = core.ErrUnderpriced
+						errs[i] = txpool.ErrUnderpriced
 					}
 					return errs
 				},

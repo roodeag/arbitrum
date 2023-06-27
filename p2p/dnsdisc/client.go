@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/roodeag/arbitrum/common/lru"
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/log"
@@ -41,7 +41,7 @@ import (
 type Client struct {
 	cfg          Config
 	clock        mclock.Clock
-	entries      *lru.Cache
+	entries      *lru.Cache[string, entry]
 	ratelimit    *rate.Limiter
 	singleflight singleflight.Group
 }
@@ -96,14 +96,10 @@ func (cfg Config) withDefaults() Config {
 // NewClient creates a client.
 func NewClient(cfg Config) *Client {
 	cfg = cfg.withDefaults()
-	cache, err := lru.New(cfg.CacheLimit)
-	if err != nil {
-		panic(err)
-	}
 	rlimit := rate.NewLimiter(rate.Limit(cfg.RateLimit), 10)
 	return &Client{
 		cfg:       cfg,
-		entries:   cache,
+		entries:   lru.NewCache[string, entry](cfg.CacheLimit),
 		clock:     mclock.System{},
 		ratelimit: rlimit,
 	}
@@ -176,7 +172,7 @@ func (c *Client) resolveEntry(ctx context.Context, domain, hash string) (entry, 
 	}
 	cacheKey := truncateHash(hash)
 	if e, ok := c.entries.Get(cacheKey); ok {
-		return e.(entry), nil
+		return e, nil
 	}
 
 	ei, err, _ := c.singleflight.Do(cacheKey, func() (interface{}, error) {

@@ -22,6 +22,7 @@ import (
 
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/core"
+	"github.com/roodeag/arbitrum/core/txpool"
 	"github.com/roodeag/arbitrum/eth/ethconfig"
 	"github.com/roodeag/arbitrum/ethdb"
 	"github.com/roodeag/arbitrum/les/flowcontrol"
@@ -49,7 +50,7 @@ type ethBackend interface {
 	BloomIndexer() *core.ChainIndexer
 	ChainDb() ethdb.Database
 	Synced() bool
-	TxPool() *core.TxPool
+	TxPool() *txpool.TxPool
 }
 
 type LesServer struct {

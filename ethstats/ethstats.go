@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/consensus"
@@ -57,6 +56,8 @@ const (
 	txChanSize = 4096
 	// chainHeadChanSize is the size of channel listening to ChainHeadEvent.
 	chainHeadChanSize = 10
+
+	messageSizeLimit = 15 * 1024 * 1024
 )
 
 // backend encompasses the bare-minimum functionality needed for ethstats reporting
@@ -102,13 +103,17 @@ type Service struct {
 // websocket.
 //
 // From Gorilla websocket docs:
-//   Connections support one concurrent reader and one concurrent writer.
-//   Applications are responsible for ensuring that no more than one goroutine calls the write methods
-//     - NextWriter, SetWriteDeadline, WriteMessage, WriteJSON, EnableWriteCompression, SetCompressionLevel
-//   concurrently and that no more than one goroutine calls the read methods
-//     - NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler, SetPingHandler
-//   concurrently.
-//   The Close and WriteControl methods can be called concurrently with all other methods.
+//
+// Connections support one concurrent reader and one concurrent writer. Applications are
+// responsible for ensuring that
+//   - no more than one goroutine calls the write methods
+//     NextWriter, SetWriteDeadline, WriteMessage, WriteJSON, EnableWriteCompression,
+//     SetCompressionLevel concurrently; and
+//   - that no more than one goroutine calls the
+//     read methods NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler,
+//     SetPingHandler concurrently.
+//
+// The Close and WriteControl methods can be called concurrently with all other methods.
 type connWrapper struct {
 	conn *websocket.Conn
 
@@ -117,6 +122,7 @@ type connWrapper struct {
 }
 
 func newConnectionWrapper(conn *websocket.Conn) *connWrapper {
+	conn.SetReadLimit(messageSizeLimit)
 	return &connWrapper{conn: conn}
 }
 

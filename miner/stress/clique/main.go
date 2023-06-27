@@ -30,6 +30,7 @@ import (
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/fdlimit"
 	"github.com/roodeag/arbitrum/core"
+	"github.com/roodeag/arbitrum/core/txpool"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/eth"
@@ -206,7 +207,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Ethereum, error) {
 		SyncMode:        downloader.FullSync,
 		DatabaseCache:   256,
 		DatabaseHandles: 256,
-		TxPool:          core.DefaultTxPoolConfig,
+		TxPool:          txpool.DefaultConfig,
 		GPO:             ethconfig.Defaults.GPO,
 		Miner: miner.Config{
 			GasCeil:  genesis.GasLimit * 11 / 10,

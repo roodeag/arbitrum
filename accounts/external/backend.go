@@ -21,7 +21,6 @@ import (
 	"math/big"
 	"sync"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/hexutil"

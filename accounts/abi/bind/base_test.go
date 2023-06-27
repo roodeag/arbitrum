@@ -24,7 +24,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/accounts/abi/bind"
 	"github.com/roodeag/arbitrum/common"

@@ -17,7 +17,7 @@
 package utils
 
 import (
-	"math/rand"
+	"crypto/rand"
 	"testing"
 
 	"github.com/roodeag/arbitrum/p2p/enode"

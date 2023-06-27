@@ -29,6 +29,7 @@ import (
 	"github.com/roodeag/arbitrum/common/fdlimit"
 	"github.com/roodeag/arbitrum/consensus/ethash"
 	"github.com/roodeag/arbitrum/core"
+	"github.com/roodeag/arbitrum/core/txpool"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/eth"
@@ -54,7 +55,7 @@ func main() {
 	// Pre-generate the ethash mining DAG so we don't race
 	ethash.MakeDataset(1, ethconfig.Defaults.Ethash.DatasetDir)
 
-	// Create an Ethash network based off of the Ropsten config
+	// Create an Ethash network
 	genesis := makeGenesis(faucets)
 
 	// Handle interrupts.
@@ -133,7 +134,7 @@ func main() {
 // makeGenesis creates a custom Ethash genesis block based on some pre-defined
 // faucet accounts.
 func makeGenesis(faucets []*ecdsa.PrivateKey) *core.Genesis {
-	genesis := core.DefaultRopstenGenesisBlock()
+	genesis := core.DefaultGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.GasLimit = 25000000
 
@@ -175,7 +176,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *eth.Ethereum, error) {
 		SyncMode:        downloader.FullSync,
 		DatabaseCache:   256,
 		DatabaseHandles: 256,
-		TxPool:          core.DefaultTxPoolConfig,
+		TxPool:          txpool.DefaultConfig,
 		GPO:             ethconfig.Defaults.GPO,
 		Ethash:          ethconfig.Defaults.Ethash,
 		Miner: miner.Config{

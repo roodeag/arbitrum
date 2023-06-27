@@ -21,8 +21,8 @@ import (
 	"encoding/binary"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/roodeag/arbitrum/common"
+	"github.com/roodeag/arbitrum/common/lru"
 	"github.com/roodeag/arbitrum/common/mclock"
 	"github.com/roodeag/arbitrum/ethdb"
 	"github.com/roodeag/arbitrum/les/utils"
@@ -57,7 +57,7 @@ var (
 
 type nodeDB struct {
 	db            ethdb.KeyValueStore
-	cache         *lru.Cache
+	cache         *lru.Cache[string, utils.ExpiredValue]
 	auxbuf        []byte                                              // 37-byte auxiliary buffer for key encoding
 	verbuf        [2]byte                                             // 2-byte auxiliary buffer for db version
 	evictCallBack func(mclock.AbsTime, bool, utils.ExpiredValue) bool // Callback to determine whether the balance can be evicted.
@@ -67,10 +67,9 @@ type nodeDB struct {
 }
 
 func newNodeDB(db ethdb.KeyValueStore, clock mclock.Clock) *nodeDB {
-	cache, _ := lru.New(balanceCacheLimit)
 	ndb := &nodeDB{
 		db:      db,
-		cache:   cache,
+		cache:   lru.NewCache[string, utils.ExpiredValue](balanceCacheLimit),
 		auxbuf:  make([]byte, 37),
 		clock:   clock,
 		closeCh: make(chan struct{}),
@@ -125,8 +124,9 @@ func (db *nodeDB) getOrNewBalance(id []byte, neg bool) utils.ExpiredValue {
 	key := db.key(id, neg)
 	item, exist := db.cache.Get(string(key))
 	if exist {
-		return item.(utils.ExpiredValue)
+		return item
 	}
+
 	var b utils.ExpiredValue
 	enc, err := db.db.Get(key)
 	if err != nil || len(enc) == 0 {

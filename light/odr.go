@@ -24,6 +24,7 @@ import (
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core"
 	"github.com/roodeag/arbitrum/core/rawdb"
+	"github.com/roodeag/arbitrum/core/txpool"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/ethdb"
 )
@@ -53,9 +54,11 @@ type OdrRequest interface {
 
 // TrieID identifies a state or account storage trie
 type TrieID struct {
-	BlockHash, Root common.Hash
-	BlockNumber     uint64
-	AccKey          []byte
+	BlockHash   common.Hash
+	BlockNumber uint64
+	StateRoot   common.Hash
+	Root        common.Hash
+	AccKey      []byte
 }
 
 // StateTrieID returns a TrieID for a state trie belonging to a certain block
@@ -64,8 +67,9 @@ func StateTrieID(header *types.Header) *TrieID {
 	return &TrieID{
 		BlockHash:   header.Hash(),
 		BlockNumber: header.Number.Uint64(),
-		AccKey:      nil,
+		StateRoot:   header.Root,
 		Root:        header.Root,
+		AccKey:      nil,
 	}
 }
 
@@ -76,6 +80,7 @@ func StorageTrieID(state *TrieID, addrHash, root common.Hash) *TrieID {
 	return &TrieID{
 		BlockHash:   state.BlockHash,
 		BlockNumber: state.BlockNumber,
+		StateRoot:   state.StateRoot,
 		AccKey:      addrHash[:],
 		Root:        root,
 	}
@@ -178,7 +183,7 @@ func (req *BloomRequest) StoreResult(db ethdb.Database) {
 
 // TxStatus describes the status of a transaction
 type TxStatus struct {
-	Status core.TxStatus
+	Status txpool.TxStatus
 	Lookup *rawdb.LegacyTxLookupEntry `rlp:"nil"`
 	Error  string
 }

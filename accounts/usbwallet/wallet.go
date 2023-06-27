@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/karalabe/usb"
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
