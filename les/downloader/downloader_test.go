@@ -26,7 +26,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/rawdb"
 	"github.com/roodeag/arbitrum/core/state/snapshot"
@@ -229,7 +228,7 @@ func (dl *downloadTester) CurrentFastBlock() *types.Block {
 func (dl *downloadTester) FastSyncCommitHead(hash common.Hash) error {
 	// For now only check that the state trie is correct
 	if block := dl.GetBlockByHash(hash); block != nil {
-		_, err := trie.NewStateTrie(common.Hash{}, block.Root(), trie.NewDatabase(dl.stateDb))
+		_, err := trie.NewStateTrie(trie.StateTrieID(block.Root()), trie.NewDatabase(dl.stateDb))
 		return err
 	}
 	return fmt.Errorf("non existent block: %x", hash[:4])

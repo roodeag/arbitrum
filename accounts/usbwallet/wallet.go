@@ -20,18 +20,17 @@ package usbwallet
 import (
 	"context"
 	"fmt"
-	"io"
-	"math/big"
-	"sync"
-	"time"
-
 	"github.com/karalabe/usb"
-	"github.com/roodeag/arbitrum"
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/log"
+	"io"
+	"math/big"
+	"sync"
+	"time"
 )
 
 // Maximum time between wallet health checks to detect USB unplugs.

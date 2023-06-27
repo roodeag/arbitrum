@@ -20,7 +20,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/event"
 	"github.com/roodeag/arbitrum/rpc"
 )

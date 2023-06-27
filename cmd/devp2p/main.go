@@ -19,30 +19,17 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/roodeag/arbitrum/internal/debug"
 	"github.com/roodeag/arbitrum/internal/flags"
 	"github.com/roodeag/arbitrum/p2p/enode"
-	"github.com/roodeag/arbitrum/params"
 	"github.com/urfave/cli/v2"
 )
 
-var (
-	// Git information set by linker when building with ci.go.
-	gitCommit string
-	gitDate   string
-	app       = &cli.App{
-		Name:        filepath.Base(os.Args[0]),
-		Usage:       "go-ethereum devp2p tool",
-		Version:     params.VersionWithCommit(gitCommit, gitDate),
-		Writer:      os.Stdout,
-		HideVersion: true,
-	}
-)
+var app = flags.NewApp("go-ethereum devp2p tool")
 
 func init() {
-	// Set up the CLI app.
+	app.HideVersion = true
 	app.Flags = append(app.Flags, debug.Flags...)
 	app.Before = func(ctx *cli.Context) error {
 		flags.MigrateGlobalFlags(ctx)
@@ -56,6 +43,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "No such command: %s\n", cmd)
 		os.Exit(1)
 	}
+
 	// Add subcommands.
 	app.Commands = []*cli.Command{
 		enrdumpCommand,

@@ -19,12 +19,7 @@ package bind_test
 import (
 	"context"
 	"errors"
-	"math/big"
-	"reflect"
-	"strings"
-	"testing"
-
-	"github.com/roodeag/arbitrum"
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/accounts/abi"
 	"github.com/roodeag/arbitrum/accounts/abi/bind"
 	"github.com/roodeag/arbitrum/common"
@@ -33,6 +28,10 @@ import (
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/rlp"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"reflect"
+	"strings"
+	"testing"
 )
 
 func mockSign(addr common.Address, tx *types.Transaction) (*types.Transaction, error) { return tx, nil }

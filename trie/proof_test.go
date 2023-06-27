@@ -23,17 +23,12 @@ import (
 	mrand "math/rand"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/rawdb"
 	"github.com/roodeag/arbitrum/crypto"
 	"github.com/roodeag/arbitrum/ethdb/memorydb"
 )
-
-func init() {
-	mrand.Seed(time.Now().Unix())
-}
 
 // makeProvers creates Merkle trie provers based on different implementations to
 // test all variations.

@@ -17,14 +17,18 @@
 package pruner
 
 import (
+	"bufio"
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 
 	bloomfilter "github.com/holiman/bloomfilter/v2"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/rawdb"
 	"github.com/roodeag/arbitrum/log"
+	"github.com/roodeag/arbitrum/rlp"
 )
 
 // stateBloomHasher is a wrapper around a byte blob to satisfy the interface API
@@ -73,27 +77,54 @@ func newStateBloomWithSize(size uint64) (*stateBloom, error) {
 
 // NewStateBloomFromDisk loads the state bloom from the given file.
 // In this case the assumption is held the bloom filter is complete.
-func NewStateBloomFromDisk(filename string) (*stateBloom, error) {
-	bloom, _, err := bloomfilter.ReadFile(filename)
+func NewStateBloomFromDisk(filename string) (*stateBloom, []common.Hash, error) {
+	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &stateBloom{bloom: bloom}, nil
+	defer f.Close()
+	r := bufio.NewReader(f)
+	version := []byte{0}
+	_, err = io.ReadFull(r, version)
+	if err != nil {
+		return nil, nil, err
+	}
+	if version[0] != 0 {
+		return nil, nil, fmt.Errorf("unknown state bloom filter version %v", version[0])
+	}
+	var roots []common.Hash
+	err = rlp.Decode(r, &roots)
+	if err != nil {
+		return nil, nil, err
+	}
+	bloom, _, err := bloomfilter.ReadFrom(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &stateBloom{bloom: bloom}, roots, nil
 }
 
 // Commit flushes the bloom filter content into the disk and marks the bloom
 // as complete.
-func (bloom *stateBloom) Commit(filename, tempname string) error {
+func (bloom *stateBloom) Commit(filename, tempname string, roots []common.Hash) error {
+	f, err := os.OpenFile(tempname, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write([]byte{0}) // version
+	if err != nil {
+		return err
+	}
+	err = rlp.Encode(f, roots)
+	if err != nil {
+		return err
+	}
 	// Write the bloom out into a temporary file
-	_, err := bloom.bloom.WriteFile(tempname)
+	_, err = bloom.bloom.WriteTo(f)
 	if err != nil {
 		return err
 	}
 	// Ensure the file is synced to disk
-	f, err := os.OpenFile(tempname, os.O_RDWR, 0666)
-	if err != nil {
-		return err
-	}
 	if err := f.Sync(); err != nil {
 		f.Close()
 		return err
@@ -129,4 +160,12 @@ func (bloom *stateBloom) Delete(key []byte) error { panic("not supported") }
 // - If it says no, the key is definitely not contained.
 func (bloom *stateBloom) Contain(key []byte) (bool, error) {
 	return bloom.bloom.Contains(stateBloomHasher(key)), nil
+}
+
+func (bloom *stateBloom) FalsePosititveProbability() float64 {
+	return bloom.bloom.FalsePosititveProbability()
+}
+
+func (bloom *stateBloom) Size() uint64 {
+	return bloom.bloom.M()
 }

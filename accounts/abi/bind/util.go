@@ -19,12 +19,11 @@ package bind
 import (
 	"context"
 	"errors"
-	"time"
-
-	"github.com/roodeag/arbitrum"
+	ethereum "github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/log"
+	"time"
 )
 
 // WaitMined waits for tx to be mined on the blockchain.

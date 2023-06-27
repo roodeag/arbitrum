@@ -25,6 +25,7 @@ import (
 
 	"github.com/roodeag/arbitrum/cmd/utils"
 	"github.com/roodeag/arbitrum/consensus/ethash"
+	"github.com/roodeag/arbitrum/internal/version"
 	"github.com/roodeag/arbitrum/params"
 	"github.com/urfave/cli/v2"
 )
@@ -38,9 +39,7 @@ var (
 	VersionCheckVersionFlag = &cli.StringFlag{
 		Name:  "check.version",
 		Usage: "Version to check",
-		Value: fmt.Sprintf("Geth/v%v/%v-%v/%v",
-			params.VersionWithCommit(gitCommit, gitDate),
-			runtime.GOOS, runtime.GOARCH, runtime.Version()),
+		Value: version.ClientName(clientIdentifier),
 	}
 	makecacheCommand = &cli.Command{
 		Action:    makecache,
@@ -67,7 +66,7 @@ Regular users do not need to execute it.
 `,
 	}
 	versionCommand = &cli.Command{
-		Action:    version,
+		Action:    printVersion,
 		Name:      "version",
 		Usage:     "Print version numbers",
 		ArgsUsage: " ",
@@ -127,14 +126,16 @@ func makedag(ctx *cli.Context) error {
 	return nil
 }
 
-func version(ctx *cli.Context) error {
+func printVersion(ctx *cli.Context) error {
+	git, _ := version.VCS()
+
 	fmt.Println(strings.Title(clientIdentifier))
 	fmt.Println("Version:", params.VersionWithMeta)
-	if gitCommit != "" {
-		fmt.Println("Git Commit:", gitCommit)
+	if git.Commit != "" {
+		fmt.Println("Git Commit:", git.Commit)
 	}
-	if gitDate != "" {
-		fmt.Println("Git Commit Date:", gitDate)
+	if git.Date != "" {
+		fmt.Println("Git Commit Date:", git.Date)
 	}
 	fmt.Println("Architecture:", runtime.GOARCH)
 	fmt.Println("Go Version:", runtime.Version())

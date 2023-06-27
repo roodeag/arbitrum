@@ -25,11 +25,11 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/roodeag/arbitrum"
 	"github.com/roodeag/arbitrum/common"
 	"github.com/roodeag/arbitrum/common/hexutil"
 	"github.com/roodeag/arbitrum/common/math"
 	"github.com/roodeag/arbitrum/consensus/misc"
+	"github.com/roodeag/arbitrum/core"
 	"github.com/roodeag/arbitrum/core/state"
 	"github.com/roodeag/arbitrum/core/types"
 	"github.com/roodeag/arbitrum/eth/filters"
@@ -1072,7 +1072,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, err := ethapi.DoCall(ctx, b.r.backend, args.Data, *b.numberOrHash, nil, b.r.backend.RPCEVMTimeout(), b.r.backend.RPCGasCap(), false)
+	result, err := ethapi.DoCall(ctx, b.r.backend, args.Data, *b.numberOrHash, nil, b.r.backend.RPCEVMTimeout(), b.r.backend.RPCGasCap(), core.MessageEthcallMode)
 	if err != nil {
 		return nil, err
 	}
@@ -1142,7 +1142,7 @@ func (p *Pending) Call(ctx context.Context, args struct {
 	Data ethapi.TransactionArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, err := ethapi.DoCall(ctx, p.r.backend, args.Data, pendingBlockNr, nil, p.r.backend.RPCEVMTimeout(), p.r.backend.RPCGasCap(), false)
+	result, err := ethapi.DoCall(ctx, p.r.backend, args.Data, pendingBlockNr, nil, p.r.backend.RPCEVMTimeout(), p.r.backend.RPCGasCap(), core.MessageEthcallMode)
 	if err != nil {
 		return nil, err
 	}
@@ -1161,8 +1161,8 @@ func (p *Pending) Call(ctx context.Context, args struct {
 func (p *Pending) EstimateGas(ctx context.Context, args struct {
 	Data ethapi.TransactionArgs
 }) (Long, error) {
-	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	gas, err := ethapi.DoEstimateGas(ctx, p.r.backend, args.Data, pendingBlockNr, p.r.backend.RPCGasCap())
+	latestBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
+	gas, err := ethapi.DoEstimateGas(ctx, p.r.backend, args.Data, latestBlockNr, p.r.backend.RPCGasCap())
 	return Long(gas), err
 }
 
@@ -1222,7 +1222,7 @@ func (r *Resolver) Blocks(ctx context.Context, args struct {
 	if args.To != nil {
 		to = rpc.BlockNumber(*args.To)
 	} else {
-		to = rpc.BlockNumber(r.backend.CurrentBlock().Number().Int64())
+		to = rpc.BlockNumber(r.backend.CurrentBlock().Number.Int64())
 	}
 	if to < from {
 		return []*Block{}, nil
